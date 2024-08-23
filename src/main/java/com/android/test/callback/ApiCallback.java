@@ -1,8 +1,8 @@
 package com.android.test.callback;
 
-import com.android.poster.detail.Detail;
-import com.android.poster.detail.ProblemDetail;
+import com.android.poster.detail.MessageDetail;
 import com.android.poster.response.APIResponse;
+import com.android.poster.util.DebugLogger;
 import com.android.poster.util.ObjectUtil;
 
 import javax.naming.Context;
@@ -12,15 +12,15 @@ import java.util.List;
  * This abstract class is to handle all api fire system.
  * @author virendra
  * @version 6.1.0
- * @since 20-Aug-2024
+ * @since 2, Feb, 2024
  */
-public abstract class ApiCallback
+public abstract class ApiCallback<RESPONSE>
 {
 	/**
 	 * this method will always override and called whenever api return a outDetail except of message outDetail
 	 * @param result - response of api
 	 */
-	public abstract void onSuccess(List<Detail> result);
+	public abstract void onSuccess(List<RESPONSE> result);
 
 	/**
 	 * showing message (eitehr success message or error message)
@@ -30,10 +30,10 @@ public abstract class ApiCallback
 	 */
 	public void onMessageDetail(Context context, APIResponse apiResponse)
 	{
-		if(apiResponse.getStatusCode() == 200 && ObjectUtil.isNotEmpty(((ProblemDetail)apiResponse.getDataList().get(0)).getSuccessMessage()))
-			onSuccessMessage(context, ((ProblemDetail)apiResponse.getDataList().get(0)));
+		if(apiResponse.getStatusCode() == 200 && ObjectUtil.isNotEmpty(((MessageDetail)apiResponse.getDataList().get(0)).getSuccessMessage()))
+			onSuccessMessage(context, ((MessageDetail)apiResponse.getDataList().get(0)));
 		else
-			onErrorMessage(context, ((ProblemDetail)apiResponse.getDataList().get(0)));
+			onErrorMessage(context, ((MessageDetail)apiResponse.getDataList().get(0)));
 	}
 
 	/**
@@ -43,17 +43,20 @@ public abstract class ApiCallback
 	 */
 	public void notify(Context context, APIResponse apiResponse)
 	{
+
 //		ADLogger.log(ADLogger.Type.e,"API_LOG", new Gson().toJson(result));
-		if( apiResponse != null && apiResponse.getDataList().size() >0 && apiResponse.getDataList().get(0) instanceof ProblemDetail)
+		if(apiResponse != null && apiResponse.getDataList().size() >0 && apiResponse.getDataList().get(0) instanceof MessageDetail)
 		{
+			DebugLogger.print(">>>>>>>>>>>>>>>>>>>>>>> "+ apiResponse.getDataList().get(0).getClass().getSimpleName());
 			onMessageDetail(context, apiResponse);
 		}else if( apiResponse != null && apiResponse.getDataList().size() >0)
 		{
+			DebugLogger.print(">>>>>>>>>>>>>>>>>>>>>>> "+ apiResponse.getDataList().get(0).getClass().getSimpleName());
 			onSuccess(apiResponse.getDataList());
 		}
 	}
 
-	public void onSuccessMessage(Context context, ProblemDetail problemDetail)
+	public void onSuccessMessage(Context context, MessageDetail messageDetail)
 	{
 //		Checks.alertMessage(context, "Success!", ((MessageDetail) result.get(0)).getSuccessMessage(), new TrueCallback() {
 //			@Override
@@ -63,14 +66,13 @@ public abstract class ApiCallback
 //			}
 //		});
 
-		System.out.println("onSuccessMessage() = "+ problemDetail.getSuccessMessage());
+		System.out.println("onSuccessMessage() = "+ messageDetail.getSuccessMessage());
 	}
 
 
-	public void onErrorMessage(Context context, ProblemDetail problemDetail)
+	public void onErrorMessage(Context context, MessageDetail messageDetail)
 	{
-		System.out.println("onErrorMessage() = "+ problemDetail.getErrorMessage());
+		System.out.println("onErrorMessage() = "+ messageDetail.getErrorMessage());
 	}
-
 }
  

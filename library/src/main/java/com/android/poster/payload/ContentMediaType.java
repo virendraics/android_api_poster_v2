@@ -1,33 +1,33 @@
 package com.android.poster.payload;
 
+import lombok.AllArgsConstructor;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
-import lombok.AllArgsConstructor;
-
 /**
- * Enum representing different types of content (payloads) based on media types.
- * 
+ * Enum representing different types of payloads based on content types.
+ *
  * @author Virendra
  * @version 6.1.0
  * @since 19-Aug-2024
  */
 @AllArgsConstructor
-public enum ContentMediaType
+public class ContentMediaType
 {
 	/**
-	 * enum for application/x-www-form-urlencoded
+	 * for application/x-www-form-urlencoded
 	 */
-	APPLICATION_FORM_URLENCODED(ContentType.APPLICATION_FORM_URLENCODED, "com.android.poster.payload.ParamPayload"),
-	
+	public static ContentMediaType APPLICATION_FORM_URLENCODED = new ContentMediaType(ContentType.APPLICATION_FORM_URLENCODED, ParamPayload.class.getName());
+
 	/**
-	 * enum for application/json
+	 * for application/json
 	 */
-	APPLICATION_JSON(ContentType.APPLICATION_JSON, "com.android.poster.payload.JsonPayload");
+	public static ContentMediaType APPLICATION_JSON = new ContentMediaType(ContentType.APPLICATION_JSON, JsonPayload.class.getName());
 
-	private final ContentType contentType;
+	private ContentType contentType;
 
-	private final String fqcn;
+	private String fqcn;
 
 	/**
 	 * Retrieves the content (payload) instance based on the provided media type and data.
@@ -39,19 +39,18 @@ public enum ContentMediaType
 	 */
 	public static <T> AbstractPayload<T> getContent(ContentType contentType, T data)
 	{
-		final ContentMediaType contentMediaType = Stream.of(values())
+		final ContentMediaType contentMediaType = Stream.of(APPLICATION_FORM_URLENCODED, APPLICATION_JSON)
 				.filter(ct-> contentType == ct.contentType)
 				.findFirst()
 				.orElse(null);
-		try 
+		try
 		{
-			@SuppressWarnings("unchecked")
 			final AbstractPayload<T> content = (AbstractPayload<T>)(Class.forName(contentMediaType.fqcn)).getDeclaredConstructor().newInstance();
 			content.setData(data);
 			return content;
-		} 
-		catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException
-				| IllegalAccessException | IllegalArgumentException | InvocationTargetException e) 
+		}
+		catch (NullPointerException | ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException
+			   | IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
 		{
 			e.printStackTrace();
 		}

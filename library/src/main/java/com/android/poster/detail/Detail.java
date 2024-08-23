@@ -11,6 +11,4 @@ import lombok.Data;
 public class Detail
 {
     private String message;
-
-    private String title;
 }

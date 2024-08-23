@@ -1,14 +1,12 @@
 package com.android.test.detail;
 
 import com.android.poster.detail.Detail;
-import lombok.Data;
 
 /**
  *
  * @author Virendra
  * @since 16/08/24
  */
-@Data
 public class AbstractDetail extends Detail
 {
     private static final long serialVersionUID = 0L;
@@ -16,5 +14,21 @@ public class AbstractDetail extends Detail
     private String authToken;
 
     public AbstractDetail() {
+    }
+
+    public String getToken() {
+        return this.authToken;
+    }
+
+    public void setToken(String token) {
+        this.authToken = token;
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

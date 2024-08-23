@@ -10,7 +10,7 @@ import java.util.List;
 
 
 /**
- * Represents an API response with generic data type D.
+ * Represents an API response with type T.
  * This class encapsulates the various properties of an API response.
  * 
  * @author Virendra
@@ -22,9 +22,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class APIResponse
+public class APIResponse<T>
 {
-	private List<Detail> dataList;
+	private List<T> dataList;
 
 	/**
 	 * The HTTP status code of the API response.

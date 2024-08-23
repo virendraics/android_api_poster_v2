@@ -5,13 +5,12 @@ import lombok.Data;
 
 /**
  * @author Virendra
- * @since 16/08/24
+ * @version 6.1.0
+ * @since 26-Jun-2024
  */
 
 @Data
-public class LoginView extends Detail
-{
-    String username;
-    String password;
-    String otp;
+public class CustomerDetail extends Detail {
+    private int id;
+    private String name;
 }

@@ -5,22 +5,17 @@ import com.android.poster.payload.ContentMediaType;
 import com.android.poster.response.APIResponse;
 import com.android.poster.util.DebugLogger;
 import com.android.poster.util.HttpResponseHandler;
+import com.android.poster.util.ObjectUtil;
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
+
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -37,14 +32,13 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor
 @SuperBuilder
-public abstract class AbstractRestClient<REQUEST>
+public abstract class AbstractRestClient<REQUEST, RESPONSE, DELEGATE extends AbstractServiceDelegate>
 {
 	protected REQUEST input;
 
-	/**
-	 * This represents the expected output detail
-	 */
-	protected Class output;
+	protected Class<RESPONSE> output;
+
+	protected DELEGATE serviceDelegate;
 
 	/**
 	 * The query parameters are used to modify the behavior of the API request or filter the API response based on specific criteria.
@@ -53,25 +47,16 @@ public abstract class AbstractRestClient<REQUEST>
 	protected Map<String, String> queryParam;
 
 	/**
-	 * As per the requirement client can also pass the additional header which will be added in final headers
-	 * Ex. Passing auth-token in header
+	 * As per the requirement client can also pass the additional cookie header which will be added in final headers
+	 * Ex. Passing authToken in cookie
 	 */
-	protected Map<String, String> additionalHeaders;
-
-	protected AbstractServiceDelegate serviceDelegate;
+	protected Map<String, String> additionalCookie;
 
 	/**
-	 * This method is used to get the current time for creating hash
-	 * @return the current time
+	 * As per the requirement client can also pass the additional header which will be added in final headers
+	 * Ex. Passing the language local
 	 */
-	protected String getTimeStamp()
-	{
-		final SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd-HH:mm:ss");
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-		final String formattedDate = sdf.format(new Date());
-		DebugLogger.print(" time delegate : "+formattedDate);
-		return formattedDate;
-	}
+	protected Map<String, String> additionalHeader;
 
 	/**
 	 * This method should be implemented by subclasses to provide the headers specific to the API being called.
@@ -87,7 +72,7 @@ public abstract class AbstractRestClient<REQUEST>
 	 *
 	 * @return A Headers containing the cookies for the API request, where the keys are cookie names and the values are cookie values.
 	 */
-	public abstract Headers cookies();
+	public abstract Map<String, String> cookies();
 
 	/**
 	 * Sends an API request using WebClient and handles the API response.
@@ -105,10 +90,11 @@ public abstract class AbstractRestClient<REQUEST>
 		if(queryParam != null)
 		{
 			url += url.endsWith("?") ? "" : "?";
-			url += ((HashMap<String, String>) queryParam).entrySet().stream()
-					.map(entry -> entry.getKey() + "=" + entry.getValue())
+			url += queryParam.entrySet().stream()
+					.map(entry -> entry.getKey() + "=" + (ObjectUtil.isNotEmpty(entry.getValue()) ? entry.getValue() : ""))
 					.collect(Collectors.joining("&"));
 		}
+
 		DebugLogger.print("Final URL >>>>> "+ url);
 
 		//3. Get the body payload
@@ -156,7 +142,6 @@ public abstract class AbstractRestClient<REQUEST>
 				return new HttpResponseHandler().handleResponse(response, output, serviceDelegate, startTime);
 		}catch (IOException e) {
 			e.printStackTrace();
-			//throw new RuntimeException(e);
 		}
 		return new HttpResponseHandler().customResponse("Unable to get response from server", 420, startTime);
 	}
